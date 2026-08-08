@@ -316,6 +316,17 @@ The two subsystems are independent:
 
 ## 9. Using real data (DEAM) — optional
 
+The dataset is **DEAM — the MediaEval Database for Emotional Analysis in Music**,
+downloaded from the University of Geneva CVML group:
+
+**https://cvml.unige.ch/databases/DEAM/**
+
+1802 excerpts with continuous per-second valence and arousal annotations, supplied
+as `DEAM_audio.zip` (~1.3 GB) and `DEAM_Annotations.zip` (~4.7 MB). The audio is
+Creative Commons licensed and served directly from that page, with no login or
+terms form. It is not redistributed with this repository — download it separately
+and record its location in the gitignored `config.deam.yaml`.
+
 The committed `config.yaml` keeps the dataset paths **blank on purpose**, so `demo`
 and `train` always fall back to the synthetic sample and no machine-specific paths
 reach the repository. Real paths belong in a local, gitignored `config.deam.yaml`
