@@ -76,7 +76,7 @@ class ArcNarrator:
             device = self.platform.device if self.platform else "cpu"
             self._tok = AutoTokenizer.from_pretrained(name)
             self._llm = AutoModelForCausalLM.from_pretrained(
-                name, torch_dtype=torch.float16 if device != "cpu" else torch.float32
+                name, dtype=torch.float16 if device != "cpu" else torch.float32
             ).to(device)
             # Optional: attach a trained LoRA adapter if present in artifacts/lora/.
             try:

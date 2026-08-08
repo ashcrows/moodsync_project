@@ -5,6 +5,7 @@ Run: `moodsync serve-app --os mac`  (or `streamlit run app/streamlit_app.py`)
 from __future__ import annotations
 
 import copy
+import gc
 import os
 import sys
 import tempfile
@@ -29,7 +30,28 @@ NARRATOR_RULE = "Rule-based (concise)"
 NARRATOR_LLM = "LLM (verbose, heavy)"
 
 
-@st.cache_resource(show_spinner="Loading models…")
+_SETTINGS_KEY = "_moodsync_settings"
+
+
+def _free_model_memory() -> None:
+    """Release the weights of a pipeline that is no longer referenced.
+
+    Dropping the cache entry only removes the reference; Python has to collect
+    the object before Metal releases its buffers, so a collection is forced and
+    the MPS allocator cache is emptied. No-op on CPU and CUDA, and when torch is
+    not installed.
+    """
+    gc.collect()
+    try:
+        import torch
+
+        if torch.backends.mps.is_available():
+            torch.mps.empty_cache()
+    except Exception:
+        pass
+
+
+@st.cache_resource(max_entries=1, show_spinner="Loading models…")
 def get_moodsync(use_musicgen: bool, segment_seconds: float, narrator_llm: bool,
                  musicgen_model: str, duration_seconds: int):
     """Build MoodSync for one combination of generation settings.
@@ -37,6 +59,10 @@ def get_moodsync(use_musicgen: bool, segment_seconds: float, narrator_llm: bool,
     Every setting is an argument so st.cache_resource keys on all of them: any
     change rebuilds the pipeline instead of silently reusing the previous one.
     The overrides are applied to a deep copy, leaving the on-disk config alone.
+
+    `max_entries=1` keeps a single pipeline resident. Without it each settings
+    combination stays cached with its own MusicGen weights, which exhausts 24 GB
+    of unified memory after a few switches.
     """
     # MOODSYNC_CONFIG carries the CLI's --config, so the UI loads the same
     # dataset (and therefore the same checkpoints) the CLI was pointed at.
@@ -81,6 +107,21 @@ st.sidebar.caption(
     "One-shot: one caption, one clip — musical and seamless. "
     "Segmented: chunked and crossfaded, tracks the arc more tightly but choppier."
 )
+st.sidebar.caption(
+    "Switching the MusicGen model reloads weights and takes a few seconds; "
+    "musicgen-medium is considerably heavier, so musicgen-small is recommended "
+    "on 24 GB."
+)
+
+# Evict the previous pipeline BEFORE building the next one. max_entries=1 only
+# evicts once the replacement has been constructed, so without this the old and
+# new MusicGen weights are both resident at the moment of peak usage.
+_settings = (bool(use_musicgen), float(segment_seconds),
+             narrator_choice == NARRATOR_LLM, str(musicgen_model), int(clip_seconds))
+if st.session_state.get(_SETTINGS_KEY, _settings) != _settings:
+    get_moodsync.clear()
+    _free_model_memory()
+st.session_state[_SETTINGS_KEY] = _settings
 
 try:
     ms, cfg, platform, cfg_path = get_moodsync(
