@@ -1,0 +1,82 @@
+# MoodSync configuration.
+# Everything here can be overridden on the CLI. Real dataset paths are left
+# blank on purpose — fill them in to switch from demo data to DEAM/FMA.
+
+# Seeds the song-level splits and weight init for train/demo. Override per run
+# with `--seed <int>` to repeat a training run under several seeds (e.g. for a
+# multi-seed ablation). 42 is the value behind the recorded results.
+seed: 42
+
+audio:
+  sample_rate: 22050      # librosa default; matches CNN mel spec (22kHz)
+  window_seconds: 3.0     # emotion predicted per 3-second window
+  hop_seconds: 3.0        # non-overlapping windows
+  n_mels: 128             # mel bands -> CNN input height
+  mel_frames: 128         # CNN input width (time frames per window)
+  n_mfcc: 40              # 40 MFCC + delta + delta2 = 120 dims
+  chroma_mode: "cqt"      # cqt (better harmony, ~10 min/DEAM pass) or stft (~1 min)
+
+features:
+  pca_dim: 128            # feature-store vector size (Parquet)
+
+cnn:
+  epochs: 60              # upper bound; early stopping usually ends sooner
+  batch_size: 32
+  lr: 0.0015
+  in_channels: 2          # 1 = mel only, 2 = mel + chroma (harmony for valence)
+  dropout: 0.3
+  weight_decay: 0.0001
+  patience: 8             # stop after N epochs with no val-valence R2 gain
+  spec_augment: true      # random time/freq masking on the MEL channel only
+  spec_time_mask: 16      # max frames masked per event
+  spec_freq_mask: 16      # max mel bands masked per event
+  # Valence is genuinely harder than arousal from audio: arousal maps onto
+  # energy/tempo/brightness, valence onto harmony and cultural context. One
+  # shared target was not realistic, so they are separate.
+  target_r2_valence: 0.40
+  target_r2_arousal: 0.65
+  target_r2: 0.65         # legacy single target, kept for older callers
+
+lstm:
+  hidden: 128
+  layers: 2
+  epochs: 20
+  batch_size: 16
+  lr: 0.002
+
+narrator:
+  base_model: "mistralai/Mistral-7B-Instruct-v0.2"   # used only with --full
+  lora_rank: 16
+  lora_alpha: 32
+
+generation:
+  musicgen_model: "facebook/musicgen-small"          # 'small' is Mac-friendlier than 'medium'
+  duration_seconds: 10                                # short clips keep CPU demo fast
+  segment_seconds: 0      # 0 = one-shot: one caption, one clip. Coherent and
+                          # seamless, but follows the arc only loosely.
+                          # > 0 = split the arc into chunks of ~this length and
+                          # crossfade them (2.5 is a reasonable value). Tracks
+                          # the arc more tightly at the cost of audible seams.
+
+arcmatch:
+  resample_points: 32     # both arcs resampled to this length before cosine sim
+
+# Checkpoints are scoped by dataset: artifacts/demo/ for the synthetic sample,
+# artifacts/deam/ for real training, so a quick `demo` cannot overwrite
+# DEAM-trained weights. Blank = auto ('deam' when DEAM paths resolve, else
+# 'demo'); set an explicit tag to keep several real-data runs side by side.
+artifacts:
+  tag: ""
+
+# Real dataset locations. Left blank on purpose so `demo`/`train` fall back to the
+# bundled synthetic sample and no machine-specific paths are committed.
+# For real DEAM training keep your local paths in the gitignored config.deam.yaml:
+#     python -m moodsync.cli train --os mac --config config.deam.yaml
+datasets:
+  deam_audio: ""          # e.g. /path/to/DEAM/audio
+  deam_annotations: ""    # e.g. /path/to/DEAM/annotations
+  fma_audio: ""           # e.g. /path/to/fma_small
+
+demo:
+  n_clips: 64             # synthetic clips generated for the demo dataset
+  clip_seconds: 18

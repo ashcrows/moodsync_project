@@ -1,0 +1,22 @@
+[project]
+name = "moodsync"
+version = "0.1.0"
+description = "Emotion-Aware Music Intelligence — temporal emotion arc modelling and emotion-conditioned music generation"
+authors = [{ name = "Ashish Sinha", email = "crowszero.ash@live.com" }]
+requires-python = ">=3.9"
+readme = "README.md"
+
+[project.optional-dependencies]
+# Dev/test tooling — kept out of requirements.txt so the light runtime path
+# stays free of dev dependencies. Install with:  pip install -e ".[dev]"
+dev = ["pytest>=8"]
+
+[project.scripts]
+moodsync = "moodsync.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["moodsync", "moodsync.features", "moodsync.models", "moodsync.generation", "moodsync.data"]

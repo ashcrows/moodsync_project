@@ -427,3 +427,33 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+.venv/
+data_store/
+**.DS_Store
+# ---- MoodSync: local, generated and machine-specific paths -------------------
+# Large data and generated outputs
+demo_outputs/
+
+# Machine-specific / local-only configuration
+config.deam.yaml
+config.local.yaml
+CLAUDE.md
+.env
+
+# Python build artefacts and tool caches
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# ML tooling runtime
+mlruns/
+
+# Editor and tooling state
+.idea/
+.claude/
+Makefile

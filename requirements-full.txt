@@ -1,0 +1,12 @@
+# MoodSync — heavy models (enabled with --full). Large downloads; GPU recommended.
+# Install AFTER requirements.txt:  pip install -r requirements-full.txt
+transformers>=4.40
+accelerate>=0.29
+# LoRA / PEFT narrator (Module M2 step 4)
+peft>=0.10
+# MusicGen via transformers needs these; audiocraft is an alternative backend.
+sentencepiece>=0.2
+# Optional: Meta AudioCraft (alternative MusicGen backend)
+# audiocraft>=1.3
+# Optional quantization for large LLMs on GPU
+# bitsandbytes>=0.43

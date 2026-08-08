@@ -1,0 +1,19 @@
+# MoodSync — light (default) requirements. Runs the full pipeline on a laptop CPU.
+numpy>=1.24
+scipy>=1.10
+PyYAML>=6.0
+librosa>=0.10
+soundfile>=0.12
+torch>=2.1
+# Distributed feature pipeline (Module M1). CPU-only, works on mac/linux/windows.
+# Capped below 4.0 on purpose: PySpark 4.x raises the Java floor to 17, whereas
+# 3.5.x runs on Java 8/11/17. Keeping <4.0 maximizes portability and keeps the
+# install reproducible (an uncapped floor silently resolved to 4.x and broke on
+# Java 11). Bump this only alongside a documented Java 17+ requirement.
+pyspark>=3.5,<4.0
+# Deployment (Module M3).
+fastapi>=0.110
+uvicorn>=0.29
+python-multipart>=0.0.9
+streamlit>=1.33
+pandas>=2.0
