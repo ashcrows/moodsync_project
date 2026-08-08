@@ -255,6 +255,12 @@ def cmd_serve_app(args):
     # it; setdefault leaves an explicit environment setting untouched.
     env.setdefault("STREAMLIT_SERVER_HEADLESS", "true")
     env.setdefault("STREAMLIT_BROWSER_GATHER_USAGE_STATS", "false")
+    # The source watcher walks every imported module and probes __path__ on it.
+    # On `transformers` that attribute access runs a lazy __getattr__, which
+    # imports the zoedepth vision model and fails on the absent torchvision.
+    # The traceback is harmless but noisy, and reloading is not needed for a
+    # served app, so the watcher is disabled rather than adding torchvision.
+    env.setdefault("STREAMLIT_SERVER_FILE_WATCHER_TYPE", "none")
     subprocess.run([sys.executable, "-m", "streamlit", "run",
                     str(root / "app" / "streamlit_app.py")], env=env)
 
