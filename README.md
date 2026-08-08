@@ -106,6 +106,20 @@ a missing model.
 
 ## Using real data (DEAM)
 
+### Dataset source
+
+The dataset used for the reported results is **DEAM — the MediaEval Database for
+Emotional Analysis in Music**, downloaded from the University of Geneva CVML group:
+
+**https://cvml.unige.ch/databases/DEAM/**
+
+It provides 1802 excerpts with continuous per-second valence and arousal
+annotations. Two archives are used: `DEAM_audio.zip` (~1.3 GB) and
+`DEAM_Annotations.zip` (~4.7 MB). The audio is Creative Commons licensed and served
+directly from that page, with no login or terms form. The dataset is **not
+redistributed with this repository** — it is downloaded separately and its location
+is recorded in the gitignored `config.deam.yaml`.
+
 The committed `config.yaml` keeps the dataset paths **blank on purpose**, so `demo`
 and `train` always fall back to the synthetic sample and no machine-specific paths
 reach the repository. Real paths live in a local, gitignored `config.deam.yaml`
@@ -130,7 +144,7 @@ command uses the blank paths and the synthetic dataset — plain `train` and pla
 `prepare_deam.py` discovers the audio and annotation folders, validates them by
 calling the real loader before writing anything, and edits only the two dataset
 lines, preserving comments. Re-running it is a no-op; `--dry-run` previews the
-change. DEAM comes from
+change. DEAM was downloaded from
 [University of Geneva CVML](https://cvml.unige.ch/databases/DEAM/); the audio is
 Creative Commons licensed and served without a login. `--download` fetches
 `DEAM_audio.zip` (~1.3 GB) and `DEAM_Annotations.zip` (~4.7 MB); if that fails it
